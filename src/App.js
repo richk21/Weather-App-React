@@ -1,11 +1,12 @@
-import React, {useState, useEffect} from "react";
+import React, {useState} from "react";
 import axios from 'axios';
 
 function App() {  
   const [data, setData] = useState({});
   const [location, setLocation] = useState('');
   const [images, setImages] = useState([]);
-  var user = "";
+  const [user, setUser] = useState([]);
+  const [userlink, setUserLink] = useState([]);
 
   const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=ddbc18a75dd11b8c0091cbae00d750a3`
   //const bgurl = `https://api.unsplash.com/photos/random?query=${location}&client_id=jZ0wkB4YyRJQBw-pzfuwwINLDotJ6uBXzXf6BIEI_IU`
@@ -26,15 +27,17 @@ function App() {
       setLocation('');
 
       try{
-        desc = desc+" climate "+location+" landscape mode"
+        desc = desc+" "+location+" landscape"
         const bgresponse = await axios.get(`https://api.unsplash.com/photos/random?query=${desc}&client_id=jZ0wkB4YyRJQBw-pzfuwwINLDotJ6uBXzXf6BIEI_IU`);
         const imageData = bgresponse.data;
-        console.log(desc)
         const image = imageData.urls && imageData.urls.regular ? imageData.urls.regular : '';
-        user = imageData.user ? imageData.user.first_name+" "+imageData.user.last_name : 'Unknown';
+        const username = imageData.user ? imageData.user.first_name+" "+imageData.user.last_name : 'Unknown';
+        const usernamelink = imageData.user ? (imageData.user.links ? imageData.user.links.html : null) : null;
         setImages(image);
+        setUser(username);
+        setUserLink(usernamelink);
         console.log(imageData);
-        console.log("taken by: ", user)
+        console.log(user)
       }catch(err){
         console.error("Error fetching background image: ", err);
         setImages([]);
@@ -84,7 +87,7 @@ function App() {
           </div>
         </div>
         <div className="copy">
-        <p className="copyright">Photo by {user}</p>
+        <p className="copyright">Shot by <a href={userlink} target="_blank"><b>{user}</b></a><br/><b>Unsplash</b></p>
       </div>
       </div>
     </div>

@@ -24,6 +24,11 @@ h1{
   font-size: 6rem;
 }
 
+a{
+  color:#fff;
+  text-decoration: none;
+}
+
 .App{
   min-height: 740px;
   width: 100%;
