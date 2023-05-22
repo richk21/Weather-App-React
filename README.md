@@ -1,5 +1,5 @@
 # Weather-App-React
-This is a simple ReactJS weather application made using OpenWeatherMap API and Unsplash API. Users can search any location on this web app.
+This is a simple ReactJS weather application made using OpenWeatherMap API, OpenCage Geocoding API and Unsplash API. Users can search any location on this web app.
 
 [This](https://richk21.github.io/Weather-App-React/) is a live example of this app.
 
