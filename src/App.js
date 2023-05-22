@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import axios from 'axios';
 
 function App() {  
@@ -7,42 +7,79 @@ function App() {
   const [images, setImages] = useState([]);
   const [user, setUser] = useState([]);
   const [userlink, setUserLink] = useState([]);
+  const [defLocation, setUserLocation] = useState({latitude:null, longitude:null, city:''});
 
+  
   const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=ddbc18a75dd11b8c0091cbae00d750a3`
-  //const bgurl = `https://api.unsplash.com/photos/random?query=${location}&client_id=jZ0wkB4YyRJQBw-pzfuwwINLDotJ6uBXzXf6BIEI_IU`
+
+
+  useEffect(()=>{
+    //fetch user's current location
+    fetchCurrentLocation();
+  },[]);
+
+  const fetchCurrentLocation=()=>{
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(
+        position =>{
+          const {latitude, longitude} = position.coords;
+          const apikey = "594c2ec9ff914d06ac1f3a2bde9da12c";
+          fetch(`https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apikey}`)
+          .then(response => response.json())
+          .then(data => {
+            const city = data.results[0].components.city || data.results[0].components.town || data.results[0].components.village || '';
+            setUserLocation({latitude, longitude, city});
+            fetchWeatherDataAndImage(city);
+          })
+          .catch(error=>{
+            console.error(error)
+          });
+        },
+        error=>{
+          console.error(error)
+        }
+      );
+    }else{
+      console.log("Geolocation is not supported by this browser");
+    }
+  }
+
+  const fetchWeatherDataAndImage = async (location) => {
+    var desc="";
+    try{
+      const response = await axios.get(url);
+      setData(response.data);
+      desc = response.data.weather[0]? response.data.weather[0].description : '';
+      console.log(desc)
+      console.log(response.data);
+    }catch(err){
+      console.error("Error fetching weather data: ", err);
+      setData({});
+    }
+    setLocation('');
+
+    try{
+      desc = desc+" "+location+" landscape"
+      const bgresponse = await axios.get(`https://api.unsplash.com/photos/random?query=${desc}&client_id=jZ0wkB4YyRJQBw-pzfuwwINLDotJ6uBXzXf6BIEI_IU`);
+      const imageData = bgresponse.data;
+      const image = imageData.urls && imageData.urls.regular ? imageData.urls.regular : '';
+      const username = imageData.user ? imageData.user.first_name+" "+imageData.user.last_name : 'Unknown';
+      const usernamelink = imageData.user ? (imageData.user.links ? imageData.user.links.html : null) : null;
+      setImages(image);
+      setUser(username);
+      setUserLink(usernamelink);
+      console.log(imageData);
+      console.log(user)
+    }catch(err){
+      console.error("Error fetching background image: ", err);
+      setImages([]);
+    }
+  }
 
   const searchLocation = async(event) => {
-    var desc="";
-    if(event.key == "Enter"){
-      try{
-        const response = await axios.get(url);
-        setData(response.data);
-        desc = response.data.weather[0]? response.data.weather[0].description : '';
-        console.log(desc)
-        console.log(response.data);
-      }catch(err){
-        console.error("Error fetching weather data: ", err);
-        setData({});
-      }
-      setLocation('');
-
-      try{
-        desc = desc+" "+location+" landscape"
-        const bgresponse = await axios.get(`https://api.unsplash.com/photos/random?query=${desc}&client_id=jZ0wkB4YyRJQBw-pzfuwwINLDotJ6uBXzXf6BIEI_IU`);
-        const imageData = bgresponse.data;
-        const image = imageData.urls && imageData.urls.regular ? imageData.urls.regular : '';
-        const username = imageData.user ? imageData.user.first_name+" "+imageData.user.last_name : 'Unknown';
-        const usernamelink = imageData.user ? (imageData.user.links ? imageData.user.links.html : null) : null;
-        setImages(image);
-        setUser(username);
-        setUserLink(usernamelink);
-        console.log(imageData);
-        console.log(user)
-      }catch(err){
-        console.error("Error fetching background image: ", err);
-        setImages([]);
-      }
-
+    if(event.key === "Enter"){
+      fetchWeatherDataAndImage(location);
+      //setLocation('')
     }
   }
 
